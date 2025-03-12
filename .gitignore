@@ -1,3 +1,4 @@
 .venv
 automata_library/__pycache__
 main/__pycache__
+generate_Latex/__pycache__
