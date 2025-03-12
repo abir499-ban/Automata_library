@@ -46,6 +46,21 @@ class DFA:
                 transition[character] = next_state
 
             self.__transitions[state] = transition
+        
+    def getStates(self):
+        return self.__states
+    
+    def getTransitions(self):
+        return self.__transitions
+    
+    def getalphabets(self):
+        return self.__alphabets
+
+    def getInitialState(self):
+        return self.__initial_state
+
+    def getFinalState(self):
+        return self.__final_state
 
     def __Isreachable(self, state):
         if state == self.__initial_state:
@@ -118,48 +133,49 @@ class DFA:
         print(self.__transitions)
 
     def generateLatex(self):
-        latex_code = r"""
-                        \documentclass{article}
-                        \usepackage{tikz}
-                        \usetikzlibrary{automata, positioning}
+        pass
+        # latex_code = r"""
+        #                 \documentclass{article}
+        #                 \usepackage{tikz}
+        #                 \usetikzlibrary{automata, positioning}
 
-                        \begin{document}
-                        \section{}
+        #                 \begin{document}
+        #                 \section{}
 
-                            \begin{center}
-                                \begin{tikzpicture}[shorten >=1pt, node distance=2cm, on grid, auto] 
-                    """
-        state_lines=[]
-        for i,state in enumerate(self.__states):
-            x_pos = i % 4
-            y_pos = -(i // 4)
-            state_type = ""
-            if state in self.__initial_state:
-                state_type += ',initial'
-            if state in self.__final_state:
-                state_type += ',accepting'
+        #                     \begin{center}
+        #                         \begin{tikzpicture}[shorten >=1pt, node distance=2cm, on grid, auto] 
+        #             """
+        # state_lines=[]
+        # for i,state in enumerate(self.__states):
+        #     x_pos = i % 4
+        #     y_pos = -(i // 4)
+        #     state_type = ""
+        #     if state in self.__initial_state:
+        #         state_type += ',initial'
+        #     if state in self.__final_state:
+        #         state_type += ',accepting'
 
-            state_lines.append(f"\n    \\node [state{state_type}] ({state}) at ({x_pos*2} , {y_pos*2}) {{ {state }}};")
+        #     state_lines.append(f"\n    \\node [state{state_type}] ({state}) at ({x_pos*2} , {y_pos*2}) {{ {state }}};")
         
-        latex_code += "".join(state_lines)
+        # latex_code += "".join(state_lines)
 
 
-        latex_code += "\n \\path[->]"
-        path_lines=[]
-        for state in self.__transitions:
-            for character in self.__transitions[state]:
-                if self.__transitions[state][character] == state:
-                    path_lines.append(f"\n      ({state}) edge[loop above] node {{{character}}} ({self.__transitions[state][character]})")
-                else:
-                    path_lines.append(f"\n      ({state}) edge node {{{character}}} ({self.__transitions[state][character]})")
+        # latex_code += "\n \\path[->]"
+        # path_lines=[]
+        # for state in self.__transitions:
+        #     for character in self.__transitions[state]:
+        #         if self.__transitions[state][character] == state:
+        #             path_lines.append(f"\n      ({state}) edge[loop above] node {{{character}}} ({self.__transitions[state][character]})")
+        #         else:
+        #             path_lines.append(f"\n      ({state}) edge node {{{character}}} ({self.__transitions[state][character]})")
 
-        latex_code += "".join(path_lines)
-        latex_code += ";"
+        # latex_code += "".join(path_lines)
+        # latex_code += ";"
 
-        latex_code += r"""
-                        \end{tikzpicture}
-                        \end{center}
-                        \end{document}
-                        """
+        # latex_code += r"""
+        #                 \end{tikzpicture}
+        #                 \end{center}
+        #                 \end{document}
+        #                 """
         
-        return latex_code
+        # return latex_code

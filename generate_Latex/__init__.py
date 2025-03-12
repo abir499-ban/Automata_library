@@ -1,2 +1,2 @@
-from .latex_dfa import latex_dfa
+from .latex_dfa import LATEX_DFA
 
