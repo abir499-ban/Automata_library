@@ -96,9 +96,19 @@ class DFA:
             else:
                 prev = indistinct
         
-
         for row in table:
             print(row)
+
+
+        for i,j in combinations(range(n), 2):
+            if not table[i][j]:
+                self.__transitions.pop(self.__states[j], None)
+                for state in self.__transitions:
+                    for character in self.__transitions[state]:
+                        if self.__transitions[state][character] == self.__states[j]:
+                            self.__transitions[state][character] = self.__states[i]
+
+        #print(self.__transitions)
 
 
                   
