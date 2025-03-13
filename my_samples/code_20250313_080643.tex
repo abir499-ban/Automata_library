@@ -1,0 +1,22 @@
+
+                        \documentclass{article}
+                        \usepackage{tikz}
+                        \usetikzlibrary{automata, positioning}
+
+                        \begin{document}
+                        \section{}
+
+                            \begin{center}
+                                \begin{tikzpicture}[shorten >=1pt, node distance=2cm, on grid, auto] 
+                    
+    \node [state,initial] (q0) at (0 , 0) { q0};
+    \node [state,accepting] (q1) at (2 , 0) { q1};
+ \path[->]
+      (q0) edge[loop above] node {0} (q0)
+      (q0) edge node {1} (q1)
+      (q1) edge[loop above] node {0} (q1)
+      (q1) edge node {1} (q0);
+                        \end{tikzpicture}
+                        \end{center}
+                        \end{document}
+                        

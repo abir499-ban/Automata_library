@@ -1,3 +1,4 @@
+from .utils import makeFile
 from automata_library import DFA
 class LATEX_DFA:
     def __init__(self, dfa : DFA):
@@ -52,8 +53,11 @@ class LATEX_DFA:
                         \end{center}
                         \end{document}
                         """
-        
-        return latex_code
+        try:
+            file_path = makeFile(latex_code=latex_code)
+            print("file containing latex code is at ", file_path)
+        except Exception as e:
+            pass
         
 
     

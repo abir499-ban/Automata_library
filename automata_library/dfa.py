@@ -34,9 +34,9 @@ class DFA:
                 print(
                     f"Enter transition for state {state} on reading character {character}"
                 )
-                next_state = input()
 
                 while True:
+                    next_state = input()
                     if not next_state:
                         print("Next State cannot be NULL")
                     elif next_state not in self.__states:
