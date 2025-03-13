@@ -1,0 +1,186 @@
+import collections
+from automata_library import DFA as superClass
+from generate_Latex import LATEX_DFA 
+
+class State:
+    """Represents a state in an NFA with transitions."""
+    def __init__(self, name):
+        self.name = name  # Unique state name
+        self.transitions = collections.defaultdict(list)  # Dictionary (symbol → list of states)
+        self.epsilon_transitions = []  # List of epsilon (ε) transitions
+
+class NFA:
+    """Represents an NFA with a full state set, transitions, alphabet, start, and final states."""
+    def __init__(self, start, accept, states, alphabet):
+        self.start = start
+        self.accept = accept
+        self.states = states  # Set of all states
+        self.alphabet = alphabet  # Set of input symbols
+
+    def get_transitions(self):
+        """Returns a transition table as a dictionary."""
+        transitions = {}
+        for state in self.states:
+            transitions[state.name] = {symbol: [s.name for s in state.transitions.get(symbol, [])] 
+                                       for symbol in self.alphabet}
+            transitions[state.name]['ε'] = [s.name for s in state.epsilon_transitions]
+        return transitions
+
+    def epsilon_closure(self, state):
+        """Computes the ε-closure of a state (set of states reachable via ε-transitions)."""
+        closure = set()
+        stack = [state]
+        while stack:
+            current = stack.pop()
+            if current not in closure:
+                closure.add(current)
+                stack.extend(current.epsilon_transitions)
+        return closure
+
+    def remove_epsilon_transitions(self):
+        """Removes ε-transitions to convert ε-NFA to a standard NFA."""
+        new_transitions = {state: {} for state in self.states}
+
+        for state in self.states:
+            closure = self.epsilon_closure(state)  # Get ε-closure of state
+            for symbol in self.alphabet:
+                reachable = set()
+                for s in closure:
+                    if symbol in s.transitions:
+                        for next_state in s.transitions[symbol]:
+                            reachable.update(self.epsilon_closure(next_state))
+                new_transitions[state][symbol] = reachable
+
+        for state in self.states:
+            state.transitions = new_transitions[state]
+            state.epsilon_transitions = []  # Remove ε-transitions
+
+        return NFA(self.start, self.accept, self.states, self.alphabet)
+
+
+# ---------------------------- REGEX TO ε-NFA ----------------------------
+
+def regex_to_nfa(regex):
+    """Converts a given regex (postfix notation) into an ε-NFA using Thompson's Construction."""
+    stack = []
+    state_count = 0
+    alphabet = set()
+
+    def new_state():
+        """Helper function to create a uniquely named state."""
+        nonlocal state_count
+        state = State(f"q{state_count}")
+        state_count += 1
+        return state
+
+    for char in regex:
+        if char.isalnum():  # Operand (symbol)
+            start = new_state()
+            accept = new_state()
+            start.transitions[char] = [accept]
+            alphabet.add(char)
+            stack.append(NFA(start, accept, {start, accept}, {char}))
+
+        elif char == '*':  # Kleene Star (*)
+            nfa = stack.pop()
+            start = new_state()
+            accept = new_state()
+            start.epsilon_transitions.extend([nfa.start, accept])
+            nfa.accept.epsilon_transitions.extend([nfa.start, accept])
+            stack.append(NFA(start, accept, nfa.states | {start, accept}, nfa.alphabet))
+
+        elif char == '.':  # Concatenation (.)
+            nfa2 = stack.pop()
+            nfa1 = stack.pop()
+            nfa1.accept.epsilon_transitions.append(nfa2.start)
+            stack.append(NFA(nfa1.start, nfa2.accept, nfa1.states | nfa2.states, nfa1.alphabet | nfa2.alphabet))
+
+        elif char == '|':  # Union (|)
+            nfa2 = stack.pop()
+            nfa1 = stack.pop()
+            start = new_state()
+            accept = new_state()
+            start.epsilon_transitions.extend([nfa1.start, nfa2.start])
+            nfa1.accept.epsilon_transitions.append(accept)
+            nfa2.accept.epsilon_transitions.append(accept)
+            stack.append(NFA(start, accept, nfa1.states | nfa2.states | {start, accept}, nfa1.alphabet | nfa2.alphabet))
+
+    final_nfa = stack.pop()
+    return final_nfa
+
+# ---------------------------- NFA TO DFA ----------------------------
+
+class DFA:
+    """Represents a DFA."""
+    def __init__(self, start, accept, transitions, alphabet):
+        self.start = start
+        self.accept = accept
+        self.transitions = transitions
+        self.alphabet = alphabet
+
+def nfa_to_dfa(nfa):
+    """Converts an NFA to a DFA using subset construction."""
+    start_closure = frozenset(nfa.epsilon_closure(nfa.start))
+    dfa_states = {start_closure}  # Set of DFA states
+    dfa_transitions = {}
+    dfa_accept = set()
+    queue = [start_closure]
+
+    while queue:
+        current_dfa_state = queue.pop()
+        dfa_transitions[current_dfa_state] = {}
+
+        for symbol in nfa.alphabet:
+            next_states = set()
+            for state in current_dfa_state:
+                if symbol in state.transitions:
+                    for next_state in state.transitions[symbol]:
+                        next_states.update(nfa.epsilon_closure(next_state))
+
+            next_states = frozenset(next_states)
+            if next_states:
+                dfa_transitions[current_dfa_state][symbol] = next_states
+                if next_states not in dfa_states:
+                    dfa_states.add(next_states)
+                    queue.append(next_states)
+
+        # If any NFA state in this DFA state is an accept state, mark it as an accept state
+        if any(state == nfa.accept for state in current_dfa_state):
+            dfa_accept.add(current_dfa_state)
+
+    # Rename states for better readability
+    state_map = {state: f"S{i}" for i, state in enumerate(dfa_states)}
+    dfa_transitions = {state_map[k]: {sym: state_map[v] for sym, v in trans.items()} for k, trans in dfa_transitions.items()}
+
+    return DFA(state_map[start_closure], {state_map[s] for s in dfa_accept}, dfa_transitions, nfa.alphabet)
+
+
+# ---------------------------- TESTING ----------------------------
+
+regex = "ab∣∗."  # Equivalent to (a | b)*
+epsilon_nfa = regex_to_nfa(regex)  # Convert regex to ε-NFA
+nfa = epsilon_nfa.remove_epsilon_transitions()  # Convert ε-NFA to NFA
+dfa = nfa_to_dfa(nfa)  # Convert to DFA
+
+print("DFA Transitions:", dfa.transitions)
+print("DFA Start State:", dfa.start)
+print("DFA Accept States:", dfa.accept)
+
+
+# my_dfa = superClass(
+#     list(dfa.transitions.keys()),  # Convert states to a list
+#     list(dfa.alphabet),            # Convert alphabets to a list
+#     str(dfa.start),                # Convert start state to string
+#     list(dfa.accept),
+#     dfa.transitions
+# )
+
+
+# my_dfa.trim()
+# my_dfa.minimize()
+# my_dfa.seeTransitions()
+
+# latexDFA = LATEX_DFA(my_dfa)
+# print(latexDFA.generateLatex())
+
+

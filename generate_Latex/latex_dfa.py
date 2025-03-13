@@ -39,12 +39,16 @@ class LATEX_DFA:
         latex_code += "\n \\path[->]"
         path_lines=[]
         for state in self.__transitions:
+            loops=[]
             for character in self.__transitions[state]:
                 if self.__transitions[state][character] == state:
-                    path_lines.append(f"\n      ({state}) edge[loop above] node {{{character}}} ({self.__transitions[state][character]})")
+                    loops.append(character)
+                    ##path_lines.append(f"\n      ({state}) edge[loop above] node {{{character}}} ({self.__transitions[state][character]})")
                 else:
                     path_lines.append(f"\n      ({state}) edge node {{{character}}} ({self.__transitions[state][character]})")
-
+                    
+            if loops:
+                path_lines.append(f"\n      ({state}) edge[loop above] node {{{",".join(loops)}}} ({self.__transitions[state][character]})")
         latex_code += "".join(path_lines)
         latex_code += ";"
 

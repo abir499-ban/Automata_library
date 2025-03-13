@@ -11,10 +11,10 @@ from automata_library import DFA
 from generate_Latex import LATEX_DFA
 
 def run_DFA():
-    my_DFA = DFA(["q0", "q1"], ["0", "1"], "q0", ["q1"])
+    my_DFA = DFA(["q0", "q1","qd"], ["a", "b"], "q0", ["q1"])
     my_DFA.trim()
-    #my_DFA.seeTransitions()
     my_DFA.minimize()
+    # my_DFA.seeTransitions()
     latexDFA = LATEX_DFA(my_DFA)
     print(latexDFA.generateLatex())
     

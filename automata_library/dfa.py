@@ -10,6 +10,7 @@ class DFA:
         alphabets: list[str],
         initial_state: str,
         final_state: list[str],
+        transitions=None,
     ):
         if initial_state not in states:
             print("NOT a valid initial state")
@@ -23,9 +24,10 @@ class DFA:
         self.__states = states
         self.__alphabets = alphabets
         self.__initial_state = initial_state
+        self.__transitions = transitions if transitions else {}
 
-        self.__transitions = {}
-        self.__GetTransitions()
+        if not self.__transitions:
+            self.__GetTransitions()
 
     def __GetTransitions(self):
         for state in self.__states:
@@ -125,6 +127,8 @@ class DFA:
                     for character in self.__transitions[state]:
                         if self.__transitions[state][character] == self.__states[j]:
                             self.__transitions[state][character] = self.__states[i]
+                
+                self.__states.pop(j)
 
         # print(self.__transitions)
         pass
