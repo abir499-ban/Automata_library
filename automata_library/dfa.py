@@ -79,9 +79,12 @@ class DFA:
         return reachable
 
     def trim(self):
-        for state in self.__states:
-            if not self.__Isreachable(state):
-                del self.__transitions[state]
+        unreachable_states = [state for state in self.__states if not self.__Isreachable(state)]
+
+        for unreachable_state in unreachable_states:
+            self.__transitions.pop(unreachable_state , None)
+        
+        self.__states = [state for state in self.__states if state not in unreachable_states]
 
     def minimize(self):
         ## assuming the dfa is complete and has no discepencies
@@ -119,16 +122,33 @@ class DFA:
 
         # for row in table:
         #     print(row)
-
-        for i, j in combinations(range(n), 2):
+        equivalent_states = []
+        for i,j in combinations(range(n) , 2):
             if not table[i][j]:
-                self.__transitions.pop(self.__states[j], None)
-                for state in self.__transitions:
-                    for character in self.__transitions[state]:
-                        if self.__transitions[state][character] == self.__states[j]:
-                            self.__transitions[state][character] = self.__states[i]
+                equivalent_states.append([self.__states[i] , self.__states[j]])
+
+        states_to_remove = {state[1] for state in equivalent_states}
+        self.__states = [state for state in self.__states if state not in states_to_remove]
+
+        for state in states_to_remove:
+            self.__transitions.pop(state , None)
+        
+        for state1, state2 in equivalent_states:
+            for source in self.__transitions:
+                for chr in self.__transitions[source]:
+                    if self.__transitions[source][chr] == state2:
+                        self.__transitions[source][chr] = state1
+
+
+
+            # if not table[i][j]:
+            #     self.__transitions.pop(self.__states[j], None)
+            #     for state in self.__transitions:
+            #         for character in self.__transitions[state]:
+            #             if self.__transitions[state][character] == self.__states[j]:
+            #                 self.__transitions[state][character] = self.__states[i]
                 
-                self.__states.pop(j)
+            #     self.__states.pop(j)
 
         # print(self.__transitions)
         pass
